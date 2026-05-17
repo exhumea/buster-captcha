@@ -20,7 +20,7 @@ const __dirname = import.meta.dirname;
 const jsonMerge = require('gulp-merge-json');
 
 const {
-  default: {version: appVersion}
+  default: {name: appName, version: appVersion}
 } = await import('./package.json', {with: {type: 'json'}});
 
 const targetEnv = process.env.TARGET_ENV || 'chrome';
@@ -265,13 +265,36 @@ async function secrets() {
   }
 }
 
-const build = series(
-  init,
-  parallel(js, html, css, images, fonts, locale, manifest, license),
-  secrets
-);
+function checkEnv(done) {
+  if (!['x64', 'ia32'].includes(process.arch)) {
+    done();
+
+    console.log(`
+The current CPU architecture (${process.arch}) is not supported.
+
+Please consult the provided build instructions, or follow the online guide.
+
+https://github.com/dessant/${appName}/wiki/Building-the-extension-on-Ubuntu
+https://github.com/dessant/${appName}/wiki/Building-the-extension-on-Windows
+`);
+
+    process.exit(1);
+  }
+}
+
+function build(done) {
+  checkEnv(done);
+
+  return series(
+    init,
+    parallel(js, html, css, images, fonts, locale, manifest, license),
+    secrets
+  )(done);
+}
 
 function zip(done) {
+  checkEnv(done);
+
   exec(
     `web-ext build -s dist/${targetEnv} -a artifacts/${targetEnv} -n "{name}-{version}-${targetEnv}.zip" --overwrite-dest`,
     function (err, stdout, stderr) {
@@ -283,6 +306,7 @@ function zip(done) {
 }
 
 function inspect(done) {
+  checkEnv(done);
   initEnv();
 
   exec(
@@ -290,6 +314,7 @@ function inspect(done) {
     webpack --profile --json > report.json && \
     webpack-bundle-analyzer --mode static report.json dist/chrome/src && \
     sleep 3 && rm report.{json,html}`,
+    {shell: '/bin/bash'},
     function (err, stdout, stderr) {
       console.log(stdout);
       console.log(stderr);
