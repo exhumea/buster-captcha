@@ -82,15 +82,33 @@ function main() {
 
       solverButton = document.createElement('button');
       solverButton.setAttribute('tabindex', '0');
-      solverButton.setAttribute('title', getText('buttonLabel_solve'));
       solverButton.id = 'solver-button';
       if (solverWorking) {
         solverButton.classList.add('working');
       }
+      setSolverButtonTooltip(solverButton);
 
       solverButton.addEventListener('click', solveChallenge);
 
       shadow.appendChild(solverButton);
+    }
+  }
+
+  async function setSolverButtonTooltip(button) {
+    if (targetEnv === 'firefox') {
+      const {speechService} = await storage.get('speechService');
+
+      button.setAttribute(
+        'data-tooltip',
+        getText(
+          'buttonTooltip_solve',
+          getText(
+            `optionValue_speechService_${speechService.replace('Demo', '')}`
+          )
+        )
+      );
+    } else {
+      button.setAttribute('title', getText('buttonLabel_solve'));
     }
   }
 

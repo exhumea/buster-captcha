@@ -480,6 +480,17 @@
     "description": "Label of the button."
   },
 
+  "buttonTooltip_solve": {
+    "message": "Solve the challenge with $SERVICE$",
+    "description": "Tooltip of the button.",
+    "placeholders": {
+      "service": {
+        "content": "$1",
+        "example": "Service"
+      }
+    }
+  },
+
   "linkText_installGuide": {
     "message": "Installation guide",
     "description": "Text of the link."
